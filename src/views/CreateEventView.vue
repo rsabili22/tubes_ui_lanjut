@@ -786,24 +786,13 @@ input:focus, textarea:focus, select:focus {
   color: var(--text-main) !important;
 }
 
-:global(body.dark-mode) .upload-placeholder {
-  background-color: var(--bg-main);
-  border-color: var(--border-color);
-}
 
-:global(body.dark-mode) .upload-placeholder:hover {
-  background-color: rgba(16, 185, 129, 0.1);
-  border-color: #10b981;
-}
 
 :global(body.dark-mode) .upload-content {
-  color: var(--text-muted) !important;
+  color: #94a3b8 !important;
 }
 
-:global(body.dark-mode) .speaker-input-card {
-  background-color: var(--bg-main);
-  border-color: var(--border-color);
-}
+
 
 :global(body.dark-mode) .card-header-action h3 {
   color: var(--text-muted) !important;

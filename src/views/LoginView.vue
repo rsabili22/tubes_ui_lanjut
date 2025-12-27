@@ -3,8 +3,11 @@ import { BookOpen, Mail, Lock, ArrowLeft } from 'lucide-vue-next'
 import { useRouter, useRoute } from 'vue-router'
 import { onMounted, ref } from 'vue'
 
+import { useAuthStore } from '../stores/auth'
+
 const router = useRouter()
 const route = useRoute()
+const authStore = useAuthStore()
 const showSuccessMessage = ref(false)
 const email = ref('')
 
@@ -43,7 +46,8 @@ const handleLogin = () => {
     email: userEmail,
     role: 'user'
   }
-  localStorage.setItem('user', JSON.stringify(userData))
+  
+  authStore.login(userData)
   window.dispatchEvent(new Event('storage')) // Trigger storage event for other components if needed
   router.push('/dashboard')
 }

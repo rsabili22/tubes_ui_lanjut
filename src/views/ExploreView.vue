@@ -3,64 +3,12 @@ import DashboardNavbar from '../components/DashboardNavbar.vue'
 import { Search, Bookmark, Eye, Calendar, User } from 'lucide-vue-next'
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import workService from '../services/workService'
 
 const router = useRouter()
 const searchQuery = ref('')
 const selectedCategory = ref('Semua Kategori')
 const sortOption = ref('Terbaru')
-
-const dummyWorks = [
-  {
-    id: 1001,
-    title: 'Deep Learning untuk Klasifikasi Gambar Medis',
-    author: 'Dr. Ahmad, Prof. Siti',
-    abstract: 'Penelitian ini mengeksplorasi penggunaan deep learning dalam meningkatkan akurasi diagnosa medis melalui klasifikasi gambar X-Ray dan MRI. Metode yang digunakan adalah Convolutional Neural Networks (CNN) dengan arsitektur ResNet-50.',
-    category: 'Kecerdasan Buatan',
-    views: 456,
-    date: '2024-12-15',
-    keywords: 'deep learning, medical imaging, CNN'
-  },
-  {
-    id: 1002,
-    title: 'Blockchain untuk Keamanan Data Kesehatan',
-    author: 'Dr. Budi, M. Rizki',
-    abstract: 'Implementasi teknologi blockchain untuk meningkatkan keamanan dan privasi data rekam medis pasien di rumah sakit. Studi kasus dilakukan pada 3 rumah sakit besar di Jakarta.',
-    category: 'Keamanan Siber',
-    views: 389,
-    date: '2024-12-14',
-    keywords: 'blockchain, health data, security'
-  },
-  {
-    id: 1003,
-    title: 'Analisis Big Data untuk Prediksi Cuaca',
-    author: 'Prof. Lisa, Dr. Andi',
-    abstract: 'Menggunakan big data analytics untuk memprediksi pola cuaca ekstrem dengan akurasi yang lebih tinggi. Data diambil dari satelit BMKG selama 10 tahun terakhir.',
-    category: 'Data Science',
-    views: 523,
-    date: '2024-12-13',
-    keywords: 'big data, weather prediction, analytics'
-  },
-  {
-    id: 1004,
-    title: 'IoT untuk Monitoring Pertanian Cerdas',
-    author: 'Ir. Dedi, M.Sc. Rina',
-    abstract: 'Sistem IoT yang dirancang untuk memantau kelembaban tanah, suhu, dan intensitas cahaya pada lahan pertanian cabai. Sistem terintegrasi dengan aplikasi mobile untuk notifikasi petani.',
-    category: 'Internet of Things',
-    views: 298,
-    date: '2024-12-12',
-    keywords: 'IoT, smart farming, user agriculture'
-  },
-  {
-    id: 1005,
-    title: 'Sistem Rekomendasi Berbasis AI',
-    author: 'Dr. Faisal, Eng. Nina',
-    abstract: 'Pengembangan sistem rekomendasi produk e-commerce menggunakan algoritma Collaborative Filtering hibrida. Hasil menunjukkan peningkatan konversi penjualan sebesar 15%.',
-    category: 'Kecerdasan Buatan',
-    views: 412,
-    date: '2024-12-11',
-    keywords: 'recommender system, AI, e-commerce'
-  }
-]
 
 const allWorks = ref([])
 const bookmarkedIds = ref([])
@@ -86,25 +34,36 @@ const toggleBookmark = (id) => {
   bookmarkedIds.value = bookmarks
 }
 
-onMounted(() => {
+onMounted(async () => {
   loadBookmarks()
-  // Load user works
-  const storedWorks = localStorage.getItem('user_works')
-  let userWorks = []
-  if (storedWorks) {
-    try {
-      const parsed = JSON.parse(storedWorks)
-      if (Array.isArray(parsed)) {
-        userWorks = parsed
-      }
-    } catch (e) {
-      console.error('Error parsing user works', e)
-    }
-  }
+  
+  try {
+    // Fetch from API
+    const response = await workService.getWorks()
+    const apiWorks = response.data
 
-  // Merge dummy works and user works
-  const formattedUserWorks = userWorks.map(w => ({...w, isUserWork: true}))
-  allWorks.value = [...formattedUserWorks, ...dummyWorks]
+    // Load user works (local storage works - kept for backward compatibility or mixed mode)
+    const storedWorks = localStorage.getItem('user_works')
+    let userWorks = []
+    if (storedWorks) {
+      try {
+        const parsed = JSON.parse(storedWorks)
+        if (Array.isArray(parsed)) {
+          userWorks = parsed
+        }
+      } catch (e) {
+        console.error('Error parsing user works', e)
+      }
+    }
+    const formattedUserWorks = userWorks.map(w => ({...w, isUserWork: true}))
+    
+    // Merge API works and Local User Works
+    allWorks.value = [...formattedUserWorks, ...apiWorks]
+
+  } catch (error) {
+    console.error('Failed to fetch works:', error)
+    // Fallback or empty state handling could go here
+  }
 })
 
 const filteredWorks = computed(() => {

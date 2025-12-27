@@ -1,0 +1,92 @@
+{
+    "works": [
+        {
+            "id": 1001,
+            "title": "Deep Learning untuk Klasifikasi Gambar Medis",
+            "author": "Dr. Ahmad, Prof. Siti",
+            "abstract": "Penelitian ini mengeksplorasi penggunaan deep learning dalam meningkatkan akurasi diagnosa medis melalui klasifikasi gambar X-Ray dan MRI. Metode yang digunakan adalah Convolutional Neural Networks (CNN) dengan arsitektur ResNet-50.",
+            "category": "Kecerdasan Buatan",
+            "views": 456,
+            "date": "2024-12-15",
+            "keywords": "deep learning, medical imaging, CNN"
+        },
+        {
+            "id": 1002,
+            "title": "Blockchain untuk Keamanan Data Kesehatan",
+            "author": "Dr. Budi, M. Rizki",
+            "abstract": "Implementasi teknologi blockchain untuk meningkatkan keamanan dan privasi data rekam medis pasien di rumah sakit. Studi kasus dilakukan pada 3 rumah sakit besar di Jakarta.",
+            "category": "Keamanan Siber",
+            "views": 389,
+            "date": "2024-12-14",
+            "keywords": "blockchain, health data, security"
+        },
+        {
+            "id": 1003,
+            "title": "Analisis Big Data untuk Prediksi Cuaca",
+            "author": "Prof. Lisa, Dr. Andi",
+            "abstract": "Menggunakan big data analytics untuk memprediksi pola cuaca ekstrem dengan akurasi yang lebih tinggi. Data diambil dari satelit BMKG selama 10 tahun terakhir.",
+            "category": "Data Science",
+            "views": 523,
+            "date": "2024-12-13",
+            "keywords": "big data, weather prediction, analytics"
+        },
+        {
+            "id": 1004,
+            "title": "IoT untuk Monitoring Pertanian Cerdas",
+            "author": "Ir. Dedi, M.Sc. Rina",
+            "abstract": "Sistem IoT yang dirancang untuk memantau kelembaban tanah, suhu, dan intensitas cahaya pada lahan pertanian cabai. Sistem terintegrasi dengan aplikasi mobile untuk notifikasi petani.",
+            "category": "Internet of Things",
+            "views": 298,
+            "date": "2024-12-12",
+            "keywords": "IoT, smart farming, user agriculture"
+        },
+        {
+            "id": 1005,
+            "title": "Sistem Rekomendasi Berbasis AI",
+            "author": "Dr. Faisal, Eng. Nina",
+            "abstract": "Pengembangan sistem rekomendasi produk e-commerce menggunakan algoritma Collaborative Filtering hibrida. Hasil menunjukkan peningkatan konversi penjualan sebesar 15%.",
+            "category": "Kecerdasan Buatan",
+            "views": 412,
+            "date": "2024-12-11",
+            "keywords": "recommender system, AI, e-commerce"
+        },
+        {
+            "id": 1006,
+            "title": "Analisis Sentimen Menggunakan NLP",
+            "author": "Prof. Andi, Dr. Rina",
+            "abstract": "Studi ini menerapkan Natural Language Processing untuk menganalisis sentimen publik di media sosial terkait kebijakan baru pemerintah.",
+            "category": "Data Science",
+            "views": 567,
+            "date": "2024-12-08",
+            "keywords": "NLP, sentiment analysis, social media"
+        }
+    ],
+    "events": [
+        {
+            "id": 1,
+            "title": "Seminar Nasional Artificial Intelligence 2024",
+            "type": "Seminar",
+            "date": "2026-12-20",
+            "time": "09:00 - 16:00 WIB",
+            "location": "Jakarta Convention Center",
+            "participants": 347,
+            "maxParticipants": 500,
+            "description": "Seminar Nasional Artificial Intelligence 2024...",
+            "image": "https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=1000&auto=format&fit=crop",
+            "active": true
+        },
+        {
+            "id": 2,
+            "title": "Workshop Machine Learning for Beginners",
+            "type": "Workshop",
+            "date": "2026-12-25",
+            "time": "10:00 - 15:00 WIB",
+            "location": "Online via Zoom",
+            "participants": 156,
+            "maxParticipants": 200,
+            "description": "Workshop interaktif...",
+            "image": "https://images.unsplash.com/photo-1544531586-fde5298cdd40?q=80&w=1000&auto=format&fit=crop",
+            "active": true
+        }
+    ]
+}

@@ -726,6 +726,13 @@ h2 {
   border-radius: 0.5rem;
 }
 
+.map-container {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  margin-top: 1rem;
+}
+
 .text-muted {
   color: #64748b;
   margin-top: 0.25rem;

@@ -163,3 +163,24 @@ body.dark-mode ::placeholder {
   color: var(--text-muted);
   opacity: 1;
 }
+
+/* Specific CreateEventView Dark Mode Overrides */
+body.dark-mode .upload-placeholder {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+body.dark-mode .upload-placeholder:hover {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+  border-color: #10b981 !important;
+}
+
+body.dark-mode .upload-content {
+  color: #94a3b8 !important;
+}
+
+body.dark-mode .speaker-input-card {
+  background-color: #0f172a !important;
+  /* Darker slate for contrast */
+  border-color: #334155 !important;
+}

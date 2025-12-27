@@ -1,11 +1,12 @@
 <script setup>
 import DashboardNavbar from '../components/DashboardNavbar.vue'
 import { Eye, Bookmark } from 'lucide-vue-next'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useBookmarkStore } from '../stores/bookmarks'
 
 const router = useRouter()
-const bookmarkedWorks = ref([])
+const bookmarkStore = useBookmarkStore()
 
 // Duplicated dummy data for prototype simplicity
 const dummyWorks = [
@@ -71,14 +72,8 @@ const dummyWorks = [
   }
 ]
 
-onMounted(() => {
-  loadBookmarks()
-  window.addEventListener('storage', loadBookmarks)
-})
-
-const loadBookmarks = () => {
-  const bookmarkIds = JSON.parse(localStorage.getItem('user_bookmarks') || '[]')
-  
+// Computed property to filter works based on bookmarks in store
+const bookmarkedWorks = computed(() => {
   // Get User Works
   let userWorks = []
   try {
@@ -93,16 +88,13 @@ const loadBookmarks = () => {
   // Combine
   const allWorks = [...userWorks, ...dummyWorks]
   
-  // Filter
-  bookmarkedWorks.value = allWorks.filter(w => bookmarkIds.includes(w.id))
-}
+  // Filter based on store
+  return allWorks.filter(w => bookmarkStore.isBookmarked(w.id))
+})
 
 const removeBookmark = (id) => {
   if (confirm('Hapus dari bookmark?')) {
-    const bookmarkIds = JSON.parse(localStorage.getItem('user_bookmarks') || '[]')
-    const updatedIds = bookmarkIds.filter(bId => bId !== id)
-    localStorage.setItem('user_bookmarks', JSON.stringify(updatedIds))
-    loadBookmarks() // Reload list
+    bookmarkStore.removeBookmark(id)
   }
 }
 
