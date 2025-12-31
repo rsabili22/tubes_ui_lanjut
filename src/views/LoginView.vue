@@ -22,23 +22,24 @@ onMounted(() => {
 })
 
 const handleLogin = () => {
-  // Simulate login
-  let name = 'User Demo'
-  let userEmail = email.value || 'user@demo.com'
-
-  // Check if there is a registered user
-  const registeredUser = localStorage.getItem('registered_user')
-  if (registeredUser) {
-    try {
-      const parsedUser = JSON.parse(registeredUser)
-      // If email matches or no email entered (assuming flow from register), use registered name
-      if (!email.value || parsedUser.email === email.value) {
-        name = parsedUser.name
-        userEmail = parsedUser.email
-      }
-    } catch (e) {
-      console.error('Error parsing registered user', e)
-    }
+  // Check if there is a registered user in DB
+  const usersDb = JSON.parse(localStorage.getItem('users_db') || '[]')
+  
+  // Find user by email (and password if we were checking it properly)
+  const foundUser = usersDb.find(u => u.email === email.value)
+  
+  if (foundUser) {
+      name = foundUser.name
+      userEmail = foundUser.email
+      // Use found user
+  } else if (!email.value) {
+      // Demo mode if no email entered
+      name = 'User Demo'
+      userEmail = 'user@demo.com'
+  } else {
+      // Email entered but not found
+      alert('User tidak ditemukan')
+      return
   }
 
   const userData = {
@@ -48,7 +49,11 @@ const handleLogin = () => {
   }
   
   authStore.login(userData)
-  window.dispatchEvent(new Event('storage')) // Trigger storage event for other components if needed
+  
+  // Force reload might be needed to reset stores if they are singletons, 
+  // but let's try just pushing route first. 
+  // Ideally, stores should watch user changes.
+  window.dispatchEvent(new Event('storage')) 
   router.push('/dashboard')
 }
 </script>

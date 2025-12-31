@@ -5,8 +5,34 @@ import { ref, onMounted } from 'vue'
 
 const works = ref([])
 
+// Helper to get key (duplicated for now, could be in a service)
+const getWorksKey = () => {
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr)
+            if (user.email) {
+                return 'data_' + user.email.replace(/[^a-zA-Z0-9]/g, '_') + '_works'
+            }
+        } catch(e) {}
+    }
+    return 'user_works'
+}
+
 onMounted(() => {
-  const storedWorks = localStorage.getItem('user_works')
+  const worksKey = getWorksKey()
+  const storedWorks = localStorage.getItem(worksKey)
+  
+  // Check if demo user
+  let isDemo = true
+  const userStr = localStorage.getItem('user')
+  if (userStr) {
+      try {
+          const u = JSON.parse(userStr)
+          if (u.email && u.email !== 'user@demo.com') isDemo = false
+      } catch(e) {}
+  }
+
   if (storedWorks) {
     try {
       works.value = JSON.parse(storedWorks)
@@ -14,35 +40,39 @@ onMounted(() => {
       console.error('Error parsing user works', e)
     }
   } else {
-    // Default dummy data if no local storage data exists
-    const defaultWorks = [
-      {
-        id: 1,
-        title: 'Implementasi Machine Learning untuk Deteksi Penyakit',
-        category: 'Teknologi Informasi',
-        date: '2024-12-10',
-        views: 234,
-        status: 'Published'
-      },
-      {
-        id: 2,
-        title: 'Analisis Sentimen Media Sosial Menggunakan NLP',
-        category: 'Data Science',
-        date: '2024-12-08',
-        views: 189,
-        status: 'Published'
-      },
-      {
-        id: 3,
-        title: 'Perancangan Sistem IoT untuk Smart Home',
-        category: 'Internet of Things',
-        date: '2024-12-05',
-        views: 156,
-        status: 'Draft'
-      }
-    ]
-    works.value = defaultWorks
-    localStorage.setItem('user_works', JSON.stringify(defaultWorks))
+    // Default dummy data ONLY if demo or fallback
+    if (isDemo) {
+        const defaultWorks = [
+          {
+            id: 1,
+            title: 'Implementasi Machine Learning untuk Deteksi Penyakit',
+            category: 'Teknologi Informasi',
+            date: '2024-12-10',
+            views: 234,
+            status: 'Published'
+          },
+          {
+            id: 2,
+            title: 'Analisis Sentimen Media Sosial Menggunakan NLP',
+            category: 'Data Science',
+            date: '2024-12-08',
+            views: 189,
+            status: 'Published'
+          },
+          {
+            id: 3,
+            title: 'Perancangan Sistem IoT untuk Smart Home',
+            category: 'Internet of Things',
+            date: '2024-12-05',
+            views: 156,
+            status: 'Draft'
+          }
+        ]
+        works.value = defaultWorks
+        localStorage.setItem(worksKey, JSON.stringify(defaultWorks))
+    } else {
+        works.value = []
+    }
   }
 })
 
@@ -56,7 +86,8 @@ const deleteWork = (id) => {
     works.value = works.value.filter(w => w.id !== id)
     
     // Update local storage
-    localStorage.setItem('user_works', JSON.stringify(works.value))
+    const worksKey = getWorksKey()
+    localStorage.setItem(worksKey, JSON.stringify(works.value))
     
     // Dispatch event to update dashboard immediately if needed
     // (though dashboard reloads from storage on mount/refresh)

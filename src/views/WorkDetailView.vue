@@ -1,8 +1,9 @@
 <script setup>
 import DashboardNavbar from '../components/DashboardNavbar.vue'
 import { ArrowLeft, Download, Bookmark, Share2, Eye } from 'lucide-vue-next'
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useBookmarkStore } from '../stores/bookmarks'
 
 const route = useRoute()
 const router = useRouter()
@@ -66,7 +67,20 @@ onMounted(() => {
   const workId = route.params.id
   
   // Check in user works
-  const storedWorks = localStorage.getItem('user_works')
+  // Check in user works
+  // Determine key
+  let worksKey = 'user_works'
+  const userStr = localStorage.getItem('user')
+  if (userStr) {
+      try {
+          const user = JSON.parse(userStr)
+          if (user.email) {
+              worksKey = 'data_' + user.email.replace(/[^a-zA-Z0-9]/g, '_') + '_works'
+          }
+      } catch(e) {}
+  }
+
+  const storedWorks = localStorage.getItem(worksKey)
   let found = false
   
   if (storedWorks) {
@@ -81,7 +95,7 @@ onMounted(() => {
           
           // Save back to storage
           works[workIndex] = uWork
-          localStorage.setItem('user_works', JSON.stringify(works))
+          localStorage.setItem(worksKey, JSON.stringify(works))
           
           work.value = uWork
           found = true
@@ -105,33 +119,20 @@ onMounted(() => {
     alert('Karya tidak ditemukan')
     router.push('/explore') // Redirect to explore instead of my-works is safer
   } else {
-    checkBookmarkStatus(workId)
+    // checkBookmarkStatus removed, using computed property now
   }
 })
 
-// Bookmark Logic
-const isBookmarked = ref(false)
+const bookmarkStore = useBookmarkStore()
 
-const checkBookmarkStatus = (id) => {
-    const bookmarkIds = JSON.parse(localStorage.getItem('user_bookmarks') || '[]')
-    // Check for both string and number types
-    isBookmarked.value = bookmarkIds.some(bId => bId == id) 
-}
+const isBookmarked = computed(() => {
+    if (!work.value) return false
+    return bookmarkStore.isBookmarked(work.value.id)
+})
 
 const toggleBookmark = () => {
-    const bookmarkIds = JSON.parse(localStorage.getItem('user_bookmarks') || '[]')
-    const id = work.value.id
-    
-    if (isBookmarked.value) {
-        // Remove
-        const newIds = bookmarkIds.filter(bId => bId != id) 
-        localStorage.setItem('user_bookmarks', JSON.stringify(newIds))
-        isBookmarked.value = false
-    } else {
-        // Add
-        bookmarkIds.push(id)
-        localStorage.setItem('user_bookmarks', JSON.stringify(bookmarkIds))
-        isBookmarked.value = true
+    if (work.value) {
+        bookmarkStore.toggleBookmark(work.value.id)
     }
 }
 
@@ -232,39 +233,45 @@ const handleShare = async () => {
         <div class="work-section full-content">
           <h1>Isi Lengkap</h1>
           
-          <div class="content-chapter">
-            <h3>1. PENDAHULUAN</h3>
-            <p>
-              Perkembangan teknologi telah membuka peluang baru dalam berbagai bidang,
-              khususnya untuk menyelesaikan permasalahan kompleks yang ada di masyarakat.
-              Penelitian ini mengeksplorasi penerapan metode terkini untuk meningkatkan efisiensi dan efektivitas solusi yang ada.
-            </p>
+          <div v-if="work.fullContent" class="dynamic-content">
+            <p>{{ work.fullContent }}</p>
           </div>
+          
+          <div v-else>
+              <div class="content-chapter">
+                <h3>1. PENDAHULUAN (CONTOH)</h3>
+                <p>
+                  Perkembangan teknologi telah membuka peluang baru dalam berbagai bidang,
+                  khususnya untuk menyelesaikan permasalahan kompleks yang ada di masyarakat.
+                  Penelitian ini mengeksplorasi penerapan metode terkini untuk meningkatkan efisiensi dan efektivitas solusi yang ada.
+                </p>
+              </div>
 
-          <div class="content-chapter">
-            <h3>2. METODOLOGI</h3>
-            <p>
-              Penelitian ini menggunakan pendekatan eksperimental dengan data yang dikumpulkan dari berbagai sumber terpercaya.
-              Prosedur pengumpulan data dilakukan secara sistematis untuk menjamin validitas dan reliabilitas hasil penelitian.
-              Analisis data dilakukan menggunakan perangkat lunak statistik terkini.
-            </p>
-          </div>
+              <div class="content-chapter">
+                <h3>2. METODOLOGI (CONTOH)</h3>
+                <p>
+                  Penelitian ini menggunakan pendekatan eksperimental dengan data yang dikumpulkan dari berbagai sumber terpercaya.
+                  Prosedur pengumpulan data dilakukan secara sistematis untuk menjamin validitas dan reliabilitas hasil penelitian.
+                  Analisis data dilakukan menggunakan perangkat lunak statistik terkini.
+                </p>
+              </div>
 
-          <div class="content-chapter">
-            <h3>3. HASIL DAN PEMBAHASAN</h3>
-            <p>
-              Hasil penelitian menunjukkan adanya peningkatan signifikan dalam metrik kinerja utama.
-              Hal ini mengindikasikan bahwa pendekatan yang diusulkan memiliki potensi besar untuk diterapkan dalam skala yang lebih luas.
-              Analisis lebih lanjut mengungkapkan korelasi positif antara variabel-variabel kunci.
-            </p>
-          </div>
+              <div class="content-chapter">
+                <h3>3. HASIL DAN PEMBAHASAN (CONTOH)</h3>
+                <p>
+                  Hasil penelitian menunjukkan adanya peningkatan signifikan dalam metrik kinerja utama.
+                  Hal ini mengindikasikan bahwa pendekatan yang diusulkan memiliki potensi besar untuk diterapkan dalam skala yang lebih luas.
+                  Analisis lebih lanjut mengungkapkan korelasi positif antara variabel-variabel kunci.
+                </p>
+              </div>
 
-          <div class="content-chapter">
-            <h3>4. KESIMPULAN</h3>
-            <p>
-              Berdasarkan hasil analisis, dapat disimpulkan bahwa metode yang dikembangkan efektif dalam mengatasi masalah yang diidentifikasi.
-              Penelitian lebih lanjut diperlukan untuk mengoptimalkan parameter-parameter tertentu dan menguji ketahanan model pada kondisi yang lebih beragam.
-            </p>
+              <div class="content-chapter">
+                <h3>4. KESIMPULAN (CONTOH)</h3>
+                <p>
+                  Berdasarkan hasil analisis, dapat disimpulkan bahwa metode yang dikembangkan efektif dalam mengatasi masalah yang diidentifikasi.
+                  Penelitian lebih lanjut diperlukan untuk mengoptimalkan parameter-parameter tertentu dan menguji ketahanan model pada kondisi yang lebih beragam.
+                </p>
+              </div>
           </div>
         </div>
       </div>
@@ -453,6 +460,13 @@ const handleShare = async () => {
 .content-chapter p {
   color: var(--text-secondary);
   line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+.dynamic-content p {
+  white-space: pre-wrap;
+  color: var(--text-secondary);
+  line-height: 1.8;
   font-size: 1.05rem;
 }
 </style>

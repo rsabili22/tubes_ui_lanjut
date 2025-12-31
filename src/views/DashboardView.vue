@@ -51,13 +51,30 @@ const eventData = [
   }
 ]
 
+const getKey = (type) => {
+    const userStr = localStorage.getItem('user')
+    if (!userStr) return `user_${type}` // fallback
+    try {
+        const user = JSON.parse(userStr)
+        if (user.email) {
+            const prefix = 'data_' + user.email.replace(/[^a-zA-Z0-9]/g, '_')
+            return `${prefix}_${type}`
+        }
+    } catch (e) {}
+    return `user_${type}`
+}
+
 onMounted(() => {
   const storedUser = localStorage.getItem('user')
+  let isDemo = true
   if (storedUser) {
     try {
       const userData = JSON.parse(storedUser)
       if (userData.name) {
         userName.value = userData.name
+      }
+      if (userData.email !== 'user@demo.com') {
+          isDemo = false
       }
     } catch (e) {
       console.error('Error parsing user data', e)
@@ -65,7 +82,9 @@ onMounted(() => {
   }
 
   // Fetch recent works
-  const storedWorks = localStorage.getItem('user_works')
+  const worksKey = getKey('works')
+  const storedWorks = localStorage.getItem(worksKey)
+  
   if (storedWorks) {
     try {
       const works = JSON.parse(storedWorks)
@@ -78,61 +97,66 @@ onMounted(() => {
       console.error('Error parsing works', e)
     }
   } else {
-    // If no works in storage, initialize defaults (same as MyWorksView)
-    const defaultWorks = [
-      {
-        id: 1,
-        title: 'Implementasi Machine Learning untuk Deteksi Penyakit',
-        category: 'Teknologi Informasi',
-        date: '2024-12-10',
-        views: 234,
-        status: 'Published'
-      },
-      {
-        id: 2,
-        title: 'Analisis Sentimen Media Sosial Menggunakan NLP',
-        category: 'Data Science',
-        date: '2024-12-08',
-        views: 189,
-        status: 'Published'
-      },
-      {
-        id: 3,
-        title: 'Perancangan Sistem IoT untuk Smart Home',
-        category: 'Internet of Things',
-        date: '2024-12-05',
-        views: 156,
-        status: 'Draft'
-      }
-    ]
-    recentWorks.value = defaultWorks
-    localStorage.setItem('user_works', JSON.stringify(defaultWorks))
-    
-    // Default stats
-    totalWorks.value = defaultWorks.length
-    totalViews.value = defaultWorks.reduce((sum, work) => sum + (work.views || 0), 0)
+    // Only init defaults if it IS the demo user (or no user)
+    // Real users start with 0 as requested
+    if (isDemo) {
+        const defaultWorks = [
+          {
+            id: 1,
+            title: 'Implementasi Machine Learning untuk Deteksi Penyakit',
+            category: 'Teknologi Informasi',
+            date: '2024-12-10',
+            views: 234,
+            status: 'Published'
+          },
+          {
+            id: 2,
+            title: 'Analisis Sentimen Media Sosial Menggunakan NLP',
+            category: 'Data Science',
+            date: '2024-12-08',
+            views: 189,
+            status: 'Published'
+          },
+          {
+            id: 3,
+            title: 'Perancangan Sistem IoT untuk Smart Home',
+            category: 'Internet of Things',
+            date: '2024-12-05',
+            views: 156,
+            status: 'Draft'
+          }
+        ]
+        recentWorks.value = defaultWorks
+        localStorage.setItem(worksKey, JSON.stringify(defaultWorks))
+        
+        // Default stats
+        totalWorks.value = defaultWorks.length
+        totalViews.value = defaultWorks.reduce((sum, work) => sum + (work.views || 0), 0)
+    } else {
+        recentWorks.value = []
+        totalWorks.value = 0
+        totalViews.value = 0
+    }
   }
 
   // Calculate Bookmarks
-  const bookmarks = JSON.parse(localStorage.getItem('user_bookmarks') || '[]')
-  totalBookmarks.value = bookmarks.length // Note: assuming this stores work IDs or objects. If simple array of IDs, length works.
+  const bookmarksKey = getKey('bookmarks')
+  const bookmarks = JSON.parse(localStorage.getItem(bookmarksKey) || '[]')
+  totalBookmarks.value = bookmarks.length 
 
   // Fetch Registered Events
-  const registeredIds = JSON.parse(localStorage.getItem('registered_events') || '[]')
+  const eventsKey = getKey('events')
+  const registeredIds = JSON.parse(localStorage.getItem(eventsKey) || '[]')
   totalEvents.value = registeredIds.length
   
-  // Filter events: Must be registered AND Date >= today
+  // Filter events: Date >= today (Show 5 nearest upcoming events globally)
   const now = new Date()
   
   upcomingEvents.value = eventData.filter(event => {
     // Check if future
-    const eventDate = new Date(event.date)
-    // Add 1 day to include today's events as "upcoming" or at least not ended
     const endOfDay = new Date(event.date + 'T23:59:59')
-    
-    // Only show if REGISTERED and UPCOMING
-    return registeredIds.includes(event.id) && endOfDay >= now
-  }).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 5) // Sort by nearest date and limit to 5
+    return endOfDay >= now
+  }).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 5)
 })
 
 const goToEvent = (id) => {
@@ -224,8 +248,8 @@ const goToEvent = (id) => {
           
           <div class="event-list">
             <div v-if="upcomingEvents.length === 0" class="empty-state">
-              <p>Belum ada event yang diikuti.</p>
-              <router-link to="/events" class="btn-sm">Cari Event</router-link>
+              <p>Belum ada event mendatang.</p>
+              <router-link to="/events" class="btn-sm">Lihat Semua Event</router-link>
             </div>
 
             <div v-for="event in upcomingEvents" :key="event.id" class="event-card" @click="goToEvent(event.id)">

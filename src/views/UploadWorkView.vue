@@ -12,7 +12,8 @@ const form = ref({
   category: '',
   author: '',
   abstract: '',
-  keywords: ''
+  keywords: '',
+  fullContent: ''
 })
 
 const file = ref(null)
@@ -32,8 +33,22 @@ onMounted(() => {
   }
 })
 
+// Helper to get key
+const getWorksKey = () => {
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr)
+            if (user.email) {
+                return 'data_' + user.email.replace(/[^a-zA-Z0-9]/g, '_') + '_works'
+            }
+        } catch(e) {}
+    }
+    return 'user_works'
+}
+
 const loadExistingWork = (id) => {
-  const storedWorks = localStorage.getItem('user_works')
+  const storedWorks = localStorage.getItem(getWorksKey())
   if (storedWorks) {
     try {
       const works = JSON.parse(storedWorks)
@@ -44,11 +59,10 @@ const loadExistingWork = (id) => {
         form.value.author = work.author
         form.value.abstract = work.abstract
         form.value.keywords = work.keywords
+        form.value.fullContent = work.fullContent || ''
         
         if (work.pdfName) {
            fileName.value = work.pdfName
-           // Note: we can't easily recreate the File object for the input from Base64
-           // So we'll trust the existing one unless replaced
         }
       } else {
         alert('Karya tidak ditemukan')
@@ -60,36 +74,12 @@ const loadExistingWork = (id) => {
   }
 }
 
-const handleFileUpload = (e) => {
-  const uploadedFile = e.target.files[0]
-  if (uploadedFile) {
-    if (uploadedFile.type !== 'application/pdf') {
-      alert('Hanya file PDF yang diperbolehkan')
-      return
-    }
-    file.value = uploadedFile
-    fileName.value = uploadedFile.name
-  }
-}
-
-const handleDrop = (e) => {
-  e.preventDefault()
-  dragActive.value = false
-  const droppedFile = e.dataTransfer.files[0]
-  if (droppedFile) {
-    if (droppedFile.type !== 'application/pdf') {
-      alert('Hanya file PDF yang diperbolehkan')
-      return
-    }
-    file.value = droppedFile
-    fileName.value = droppedFile.name
-  }
-}
+// ... handlers ...
 
 const handleSubmit = () => {
-  // modify validation: file is optional in edit mode if already exists
-  if (!form.value.title || !form.value.category || !form.value.author || !form.value.abstract) {
-    alert('Mohon lengkapi semua field')
+  // modify validation
+  if (!form.value.title || !form.value.category || !form.value.author || !form.value.abstract || !form.value.fullContent) {
+    alert('Mohon lengkapi semua field termasu Isi Lengkap')
     return
   }
   
@@ -99,7 +89,8 @@ const handleSubmit = () => {
   }
 
   const saveWork = (pdfData, pdfName) => {
-    const storedWorks = localStorage.getItem('user_works')
+    const worksKey = getWorksKey()
+    const storedWorks = localStorage.getItem(worksKey)
     let works = []
     if (storedWorks) {
       try {
@@ -121,6 +112,7 @@ const handleSubmit = () => {
           author: form.value.author,
           abstract: form.value.abstract,
           keywords: form.value.keywords,
+          fullContent: form.value.fullContent,
         }
         
         if (pdfData) {
@@ -137,6 +129,7 @@ const handleSubmit = () => {
         author: form.value.author,
         abstract: form.value.abstract,
         keywords: form.value.keywords,
+        fullContent: form.value.fullContent,
         date: new Date().toISOString().split('T')[0],
         views: 0,
         status: 'Published',
@@ -145,9 +138,11 @@ const handleSubmit = () => {
       }
       works.unshift(newWork)
     }
+    
+    // ... save ...
 
     try {
-      localStorage.setItem('user_works', JSON.stringify(works))
+      localStorage.setItem(worksKey, JSON.stringify(works))
       router.push('/my-works')
     } catch (e) {
       alert('Gagal menyimpan file: Ukuran file terlalu besar untuk LocalStorage quota.')
@@ -208,7 +203,12 @@ const handleCancel = () => {
 
           <div class="form-group">
             <label>Abstrak <span class="required">*</span></label>
-            <textarea v-model="form.abstract" rows="5" placeholder="Tuliskan abstrak karya ilmiah Anda" class="form-textarea"></textarea>
+            <textarea v-model="form.abstract" rows="4" placeholder="Tuliskan abstrak karya ilmiah Anda" class="form-textarea"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Isi Lengkap <span class="required">*</span></label>
+            <textarea v-model="form.fullContent" rows="8" placeholder="Tuliskan isi lengkap karya ilmiah Anda" class="form-textarea"></textarea>
           </div>
 
           <div class="form-group">

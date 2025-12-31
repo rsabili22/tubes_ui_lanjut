@@ -75,9 +75,20 @@ const dummyWorks = [
 // Computed property to filter works based on bookmarks in store
 const bookmarkedWorks = computed(() => {
   // Get User Works
+  let worksKey = 'user_works'
+  const userStr = localStorage.getItem('user')
+  if (userStr) {
+      try {
+          const user = JSON.parse(userStr)
+          if (user.email) {
+              worksKey = 'data_' + user.email.replace(/[^a-zA-Z0-9]/g, '_') + '_works'
+          }
+      } catch(e) {}
+  }
+
   let userWorks = []
   try {
-    const storedUserWorks = localStorage.getItem('user_works')
+    const storedUserWorks = localStorage.getItem(worksKey)
     if (storedUserWorks) {
       userWorks = JSON.parse(storedUserWorks)
     }

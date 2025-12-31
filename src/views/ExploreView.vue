@@ -4,6 +4,7 @@ import { Search, Bookmark, Eye, Calendar, User } from 'lucide-vue-next'
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import workService from '../services/workService'
+import { useBookmarkStore } from '../stores/bookmarks'
 
 const router = useRouter()
 const searchQuery = ref('')
@@ -11,31 +12,15 @@ const selectedCategory = ref('Semua Kategori')
 const sortOption = ref('Terbaru')
 
 const allWorks = ref([])
-const bookmarkedIds = ref([])
+const bookmarkStore = useBookmarkStore()
 
-const loadBookmarks = () => {
-  bookmarkedIds.value = JSON.parse(localStorage.getItem('user_bookmarks') || '[]')
-}
-
-const isBookmarked = (id) => {
-  return bookmarkedIds.value.some(bId => bId == id)
-}
-
-const toggleBookmark = (id) => {
-  let bookmarks = JSON.parse(localStorage.getItem('user_bookmarks') || '[]')
-  if (bookmarks.some(bId => bId == id)) {
-    // Remove
-    bookmarks = bookmarks.filter(bId => bId != id)
-  } else {
-    // Add
-    bookmarks.push(id)
-  }
-  localStorage.setItem('user_bookmarks', JSON.stringify(bookmarks))
-  bookmarkedIds.value = bookmarks
-}
+// No need for local loadBookmarks or isBookmarked helper, we use the store directly
+// but we might need a helper for the template if we want to keep it short
+const isBookmarked = (id) => bookmarkStore.isBookmarked(id)
+const toggleBookmark = (id) => bookmarkStore.toggleBookmark(id)
 
 onMounted(async () => {
-  loadBookmarks()
+  // Store initializes itself
   
   try {
     // Fetch from API
@@ -43,7 +28,19 @@ onMounted(async () => {
     const apiWorks = response.data
 
     // Load user works (local storage works - kept for backward compatibility or mixed mode)
-    const storedWorks = localStorage.getItem('user_works')
+    // Determine key
+    let worksKey = 'user_works'
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr)
+            if (user.email) {
+                worksKey = 'data_' + user.email.replace(/[^a-zA-Z0-9]/g, '_') + '_works'
+            }
+        } catch(e) {}
+    }
+
+    const storedWorks = localStorage.getItem(worksKey)
     let userWorks = []
     if (storedWorks) {
       try {

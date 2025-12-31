@@ -21,13 +21,35 @@ const handleRegister = () => {
     return
   }
   
-  // Store registered user to simulate backend
+  // Retrieve existing users or initialize empty array
+  const usersDb = JSON.parse(localStorage.getItem('users_db') || '[]')
+  
+  // Check if email already exists
+  if (usersDb.some(u => u.email === email.value)) {
+    alert('Email sudah terdaftar')
+    return
+  }
+
   const userData = {
     name: name.value,
     email: email.value,
-    role: profession.value
+    role: profession.value,
+    password: password.value // storing password for login check (in clear text for prototype)
   }
-  localStorage.setItem('registered_user', JSON.stringify(userData))
+  
+  // Add to DB
+  usersDb.push(userData)
+  localStorage.setItem('users_db', JSON.stringify(usersDb))
+  
+  // Initialize ONLY this user's data
+  // Using email as key prefix for simplicity
+  const userKey = email.value.replace(/[^a-zA-Z0-9]/g, '_')
+  localStorage.setItem(`data_${userKey}_works`, '[]')
+  localStorage.setItem(`data_${userKey}_bookmarks`, '[]')
+  localStorage.setItem(`data_${userKey}_events`, '[]')
+  
+  // Also keep the single "registered_user" for backward compatibility if needed, 
+  // but LoginView should be updated to check users_db
   
   // Simulate registration success
   router.push('/login?registered=success')
